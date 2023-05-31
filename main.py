@@ -154,12 +154,12 @@ async def on_message(message: Message, state: FSMContext, suvvy: SuvvyBotAPI, te
 
 
 @dp.callback_query(F.data == "check_subscribe")
-async def check_sub(query: CallbackQuery, bot: Bot):
+async def check_sub(query: CallbackQuery, bot: Bot, state: FSMContext):
     not_member = await check_subscribe(get_telegram_channels(), bot, query.from_user.id)
     if not not_member:
         await query.message.delete()
         await query.answer("Приятного пользования!")
-        return await on_start(query.message)
+        return await on_start(query.message, state)
     else:
         await query.answer("Вы не подписались на все каналы!", show_alert=True)
 
