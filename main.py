@@ -159,7 +159,7 @@ async def check_sub(query: CallbackQuery, bot: Bot, state: FSMContext):
     if not not_member:
         await query.message.delete()
         await query.answer("Приятного пользования!")
-        return await on_start(query.message, state)
+        return await on_start(query.message.reply_to_message, state)
     else:
         await query.answer("Вы не подписались на все каналы!", show_alert=True)
 
