@@ -119,12 +119,16 @@ async def on_message(message: Message, state: FSMContext, suvvy: SuvvyBotAPI, te
 
     await bot.send_chat_action(message.chat.id, "typing")
 
+    extra = await db.get_questions(message.from_user.id)
+    extra["username"] = message.from_user.username or "N/A"
+    extra["url"] = message.from_user.url or "N/A"
+
     match telegram_settings.history_type:
         case "disabled":
-            result = await suvvy.chat_predict(history)
+            result = await suvvy.chat_predict(history, custom_log_info=extra)
             await set_state_param(state, "history", [])
         case "enabled":
-            result = await suvvy.chat_predict(history)
+            result = await suvvy.chat_predict(history, custom_log_info=extra)
             await add_history_message(state, result.prediction, 'ai')
         case "last_time":
             h = await get_history(state, time=True)
@@ -132,7 +136,7 @@ async def on_message(message: Message, state: FSMContext, suvvy: SuvvyBotAPI, te
                 ChatMessage(**mes.dict()) for mes in h if
                 datetime.datetime.now() - mes.time < datetime.timedelta(minutes=telegram_settings.history_time_minutes)
             ]
-            result = await suvvy.chat_predict(ms)
+            result = await suvvy.chat_predict(ms, custom_log_info=extra)
             await add_history_message(state, result.prediction, 'ai')
         case "auto_reset_time":
             if len(messages_be) != 0:
@@ -141,12 +145,9 @@ async def on_message(message: Message, state: FSMContext, suvvy: SuvvyBotAPI, te
                     if telegram_settings.system_messages:
                         await message.answer("💥 История <b>была сброшена</b> в связи с простоем!", parse_mode="HTML")
                     await set_state_param(state, "history", [])
-            extra = await db.get_questions(message.from_user.id)
-            extra["username"] = message.from_user.username or "N/A"
-            extra["url"] = message.from_user.url or "N/A"
             result = await suvvy.chat_predict(history[len(messages_be)-1:], custom_log_info=extra)
         case _:
-            result = await suvvy.chat_predict(history)
+            result = await suvvy.chat_predict(history, custom_log_info=extra)
             await set_state_param(state, "history", [])
 
     await message.answer(result.prediction, parse_mode="Markdown")

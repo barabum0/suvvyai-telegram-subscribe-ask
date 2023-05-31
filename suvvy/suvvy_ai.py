@@ -57,26 +57,31 @@ class SuvvyBotAPI:
 
     async def chat_predict(self, history: List[ChatMessage], placeholders: dict = {}, custom_log_info: dict = {}) -> ChatPrediction:
         r = await self._post_request("/api/v1/predict/chat/placeholder", content={
-            "prompt": [m.dict() for m in history],
+            "history": [m.dict() for m in history],
             "placeholders": placeholders,
             "custom_log_info": custom_log_info,
             "source": "CorpSoft Telegram Bot"
         })
 
-        d = r.json()
         match r.status_code:
             case 200:
+                d = r.json()
                 return ChatPrediction(**d)
             case 400:
+                d = r.json()
                 raise NotThatModel(d["error"])
             case 401:
                 raise AuthenticationError()
             case 413:
                 raise ModelLimitExceeded()
+            case _:
+                print(r.status_code)
+                print(r.content)
+                raise Exception
 
     async def instruct_predict(self, prompt: str, placeholders: dict = {}, custom_log_info: dict = {}) -> InstructPrediction:
         r = await self._post_request("/api/v1/predict/instruct/placeholder", content={
-            "prompt": prompt,
+            "history": prompt,
             "placeholders": placeholders,
             "custom_log_info": custom_log_info,
             "source": "CorpSoft Telegram Bot"
@@ -98,6 +103,7 @@ class SuvvyBotAPI:
             case _:
                 print(r.content)
                 print(r.status_code)
+                raise Exception
 
     async def get_telegram_settings(self) -> TelegramIntegrationSettings:
         r = await self._get_request("/api/integration/telegram")
