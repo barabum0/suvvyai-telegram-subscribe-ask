@@ -55,7 +55,7 @@ class ChannelMiddleware(BaseMiddleware):
                                     not_a_member
                                 ] + [[InlineKeyboardButton(text="Я подписался!", callback_data="check_subscribe")]]
             )
-            await event.answer(text, reply_markup=keyboard)
+            await event.reply(text, reply_markup=keyboard)
             return
 
         return await handler(event, data)
