@@ -1,3 +1,5 @@
+import json
+import logging
 import typing
 from typing import List
 
@@ -9,6 +11,11 @@ from suvvy.models.Chat import ChatMessage, ChatPrediction
 from suvvy.models.Error import AuthenticationError, NotThatModel, ModelLimitExceeded
 from suvvy.models.Instruct import InstructPrediction
 from suvvy.models.Integration import TelegramIntegrationSettings
+
+
+def jsonify(data: dict | str | list) -> str:
+    logging.debug(data)
+    return json.dumps(data, ensure_ascii=False)
 
 
 class SuvvyBotAPI:
@@ -33,20 +40,15 @@ class SuvvyBotAPI:
 
     async def _post_request(self, url: URLTypes, content: str | dict | list) -> Response:
         async with httpx.AsyncClient() as client:
-            if isinstance(content, dict | list):
-                r = await client.post(url=self.url+url, timeout=self._timeout_seconds, headers=self._default_header, json=content)
-            else:
-                r = await client.post(url=self.url+url, timeout=self._timeout_seconds, headers=self._default_header, content=content)
+            r = await client.post(url=self.url+url, timeout=self._timeout_seconds, headers=self._default_header,
+                                  json=content)
 
         return r
 
     async def _put_request(self, url: URLTypes, content: str | dict | list) -> Response:
         async with httpx.AsyncClient() as client:
-            if isinstance(content, dict | list):
-                r = await client.put(url=self.url+url, timeout=self._timeout_seconds, headers=self._default_header, json=content)
-            else:
-                r = await client.put(url=self.url+url, timeout=self._timeout_seconds, headers=self._default_header, content=content)
-
+            r = await client.put(url=self.url + url, timeout=self._timeout_seconds, headers=self._default_header,
+                                 json=content)
         return r
 
     async def _delete_request(self, url: URLTypes) -> Response:

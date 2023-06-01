@@ -21,4 +21,8 @@ class Database:
         return bool(await self.db.questionary.find_one({"uid": uid}))
 
     async def get_questions(self, uid: int):
-        return await self.db.questionary.find_one({"uid": uid}) or {}
+        data: dict = await self.db.questionary.find_one({"uid": uid})
+        if not data:
+            return {}
+        data.pop("_id")
+        return data
