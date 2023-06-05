@@ -5,6 +5,7 @@ from os import getenv
 from typing import Any
 
 from aiogram import Bot, Dispatcher, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
@@ -150,7 +151,10 @@ async def on_message(message: Message, state: FSMContext, suvvy: SuvvyBotAPI, te
             result = await suvvy.chat_predict(history, custom_log_info=extra)
             await set_state_param(state, "history", [])
 
-    await message.answer(result.prediction, parse_mode="Markdown")
+    try:
+        await message.answer(result.prediction, parse_mode="Markdown")
+    except TelegramBadRequest:
+        await message.answer(result.prediction, parse_mode="HTML")
 
 
 @dp.callback_query(F.data == "check_subscribe")
